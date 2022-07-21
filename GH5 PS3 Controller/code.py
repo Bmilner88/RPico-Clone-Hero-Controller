@@ -4,6 +4,7 @@
 
 import time
 import board
+import machine
 import digitalio
 import usb_hid
 from adafruit_hid.gamepad import Gamepad
@@ -23,30 +24,26 @@ if(board_led.value == True):
     led3.toggle()
     led4.toggle()
 
-
-
 gamepad.find_device()
 
 # frets
-btn_green = digitalio.DigitalInOut(board.GP2)
-btn_green.direction = digitalio.Direction.INPUT
-btn_green.pull = digitalio.Pull.DOWN
+sdaPIN = machine.pin(28) # data OR D
+sclPIN = machine.pin(27) # clk OR C
+# V goes to GP36
+# G goes to GP33
 
-btn_red = digitalio.DigitalInOut(board.GP3)
-btn_red.direction = digitalio.Direction.INPUT
-btn_red.pull = digitalio.Pull.DOWN
+i2c = machine.I2C(0, sda=sdaPIN, scl=sclPIN, freq=400000)
 
-btn_yellow = digitalio.DigitalInOut(board.GP4)
-btn_yellow.direction = digitalio.Direction.INPUT
-btn_yellow.pull = digitalio.Pull.DOWN
+print('Scanning i2c bus')
+devices = i2c.scan()
 
-btn_blue = digitalio.DigitalInOut(board.GP5)
-btn_blue.direction = digitalio.Direction.INPUT
-btn_blue.pull = digitalio.Pull.DOWN
+if len(devices) == 0:
+    print("No i2c device !")
+else:
+    print('i2c devices found:', len(devices))
 
-btn_orange = digitalio.DigitalInOut(board.GP6)
-btn_orange.direction = digitalio.Direction.INPUT
-btn_orange.pull = digitalio.Pull.DOWN
+for device in devices:
+    print('Decimal address: ', device, ' | Hexa address: ', hex(device))
 
 # strum bar
 btn_up = digitalio.DigitalInOut(board.GP7)
@@ -68,6 +65,7 @@ btn_select.pull = digitalio.Pull.DOWN
 
 # whammy
 ana_whammy = AnalogIn(board.GP26)
+# RED WIRE IS NOT GROUND
 
 # set the buttons
 buttons = {
